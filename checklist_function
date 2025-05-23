@@ -1,0 +1,102 @@
+CREATE OR REPLACE FUNCTION generate_invoice_checklist(p_invoice_id INTEGER)
+RETURNS TABLE (
+    invoice_id INTEGER,
+    invoice_no TEXT,
+    invoice_no_duplicate TEXT,
+    invoice_date DATE,
+    po_date DATE,
+    invoice_total NUMERIC(20,2),
+    invoice_total_lineitems NUMERIC(20,2),
+    invoice_total_values_lineitems TEXT,
+    invoice_total_check TEXT,
+    vendor_name TEXT,
+    vendor_name_master TEXT,
+    vendorname_check TEXT,
+    supplier_gstin TEXT,
+    suppler_gstin_po TEXT,
+    supplier_gstin_check TEXT,
+    buyer_gstin TEXT,
+    buyer_gstin_po TEXT,
+    buyer_gstin_check TEXT,
+    supplier_pan TEXT,
+    supplier_pan_master TEXT,
+    suplier_pan_check TEXT,
+    supplier_gstin_pan_check TEXT
+) AS $$
+DECLARE
+    v_invoice RECORD;
+    v_po RECORD;
+    v_vm RECORD;
+    v_total_lineitems NUMERIC(20,2) := 0;
+    v_values_list TEXT := '';
+    v_dup_count INT;
+    v_vendor_sim_ratio FLOAT;
+BEGIN
+    -- Fetch the invoice
+    SELECT * INTO v_invoice FROM invoice_details inv WHERE inv.invoice_id = p_invoice_id;
+
+    IF NOT FOUND THEN
+        RAISE EXCEPTION 'Invoice ID % not found', p_invoice_id;
+    END IF;
+
+    -- Count duplicates of invoice number
+    SELECT COUNT(*) INTO v_dup_count
+    FROM invoice_details inv
+    WHERE inv.invoice_number = v_invoice.invoice_number;
+
+    -- Fetch the PO
+    SELECT * INTO v_po FROM po_details po WHERE po.po_number = v_invoice.po_ref;
+
+    -- Fetch vendor master by GSTIN
+    SELECT * INTO v_vm
+    FROM vpr_vendor_master vm
+    WHERE vm.gstin = v_invoice.supplier_gstin
+    LIMIT 1;
+
+    -- Aggregate line items
+    SELECT
+        SUM(li.total_value) AS total_sum,
+        STRING_AGG(li.total_value::TEXT, ',') AS values_csv
+    INTO
+        v_total_lineitems,
+        v_values_list
+    FROM invoice_lineitems li
+    WHERE li.invoice_id = p_invoice_id;
+
+    -- Calculate fuzzy match between vendor_name and master
+    SELECT
+        similarity(v_invoice.vendor_name, v_vm.master)
+    INTO
+        v_vendor_sim_ratio;
+
+    RETURN QUERY
+    SELECT
+        v_invoice.invoice_id,
+        v_invoice.invoice_number::TEXT,
+        CASE WHEN v_dup_count > 1 THEN 'yes' ELSE 'no' END,
+        v_invoice.invoice_date,
+        v_po.po_date,
+        v_invoice.total_amount,
+        COALESCE(v_total_lineitems, 0),
+        COALESCE(v_values_list, ''),
+        CASE WHEN v_invoice.total_amount = v_total_lineitems THEN 'yes' ELSE 'no' END,
+        v_invoice.vendor_name::TEXT,
+        v_vm.master::TEXT,
+        (ROUND(v_vendor_sim_ratio * 100)::TEXT || '%'),
+        v_invoice.supplier_gstin::TEXT,
+        v_po.supplier_gstin::TEXT,
+        CASE WHEN v_invoice.supplier_gstin = v_po.supplier_gstin THEN 'yes' ELSE 'no' END,
+        v_invoice.buyer_gstin::TEXT,
+        v_po.buyer_gstin::TEXT,
+        CASE WHEN v_invoice.buyer_gstin = v_po.buyer_gstin THEN 'yes' ELSE 'no' END,
+        NULL, -- placeholder for supplier_pan
+        v_vm.pan::TEXT,
+        CASE WHEN NULL = v_vm.pan THEN 'yes' ELSE 'no' END,
+        CASE WHEN POSITION(v_vm.pan IN v_invoice.supplier_gstin) > 0 THEN 'yes' ELSE 'no' END
+    ;
+END;
+$$ LANGUAGE plpgsql;
+
+
+SELECT * FROM generate_invoice_checklist(3);
+
