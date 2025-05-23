@@ -1,0 +1,88 @@
+ManiJyothi
+
+
+
+@app.get("/invoice_po_mrn_number/{id}")
+def invoice_po_mrn_number(id: str):
+    try:
+        conn = get_db_connection()
+        cur = conn.cursor(cursor_factory=psycopg2.extras.RealDictCursor)
+
+        # ✅ Wrap id in a tuple
+        cur.execute("SELECT idet.invoice_number,pdet.po_number, md.mrn_number FROM invoice_details idet LEFT JOIN po_details pdet ON idet.po_ref = pdet.po_number LEFT JOIN mrn_details md ON md.po_reference_number = pdet.po_number WHERE idet.invoice_id = %s LIMIT 1", (id,))
+
+        row = cur.fetchone()
+        cur.close()
+        conn.close()
+
+        if not row:
+            raise HTTPException(status_code=404, detail="Image duplicate not found for the given ID.")
+
+        return row
+
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Database error: {str(e)}")
+
+@app.get("/string_matching")
+def string_matching():
+    try:
+        
+        # Input lists
+        invoice = [
+            'TVS M6x25 Screw',
+            'TVS M6x1 Sunloc Nut',
+            'Fevitite Rapid & Clear 36GMS(140)',
+            'Grease Nipple M12',
+            'PVC Conector',
+            'Taparia Screw Driver 862-150(94)',
+            'Screw Driver Striking(8x210)(DN)140',
+            'TVS M6x35 Screw',
+            'TVS M6x1 Sunloc Nut'
+        ]
+
+        po = [
+             'Grease Nipple Small. 30100125',
+            'Bolt (M6x25) 30170035',
+            'Nut M6. 30170230',
+            'Fevitite (Araldite). 30100084',
+           'Bolt&Nut M6x35. 30170395',
+            'PVC Connectoer 3. 30170254',
+            'Screw Driver 2In1. 40210467',
+            'Screw Driver. 50210154',
+            
+            'Nut M6. 30170230'
+        ]
+
+        # Text cleaning function
+        def clean_text(text):
+            text = text.lower()
+            text = re.sub(r'[^a-z0-9]+', ' ', text)
+            return text.strip()
+
+        # Preprocess
+        cleaned_invoice = [clean_text(item) for item in invoice]
+        cleaned_po = [clean_text(item) for item in po]
+
+        # Matching
+        matches = []
+        for i, po_item in enumerate(cleaned_po):
+            best_match, score, matched_index = process.extractOne(
+                po_item,
+                cleaned_invoice,
+                scorer=fuzz.token_sort_ratio
+            )
+            matches.append({
+                'po_item': po[i],
+                'matched_invoice_item': invoice[matched_index],
+                'score': score
+            })
+
+        # Display results
+        print("\nMatched Results:")
+        for match in matches:
+            print(f"PO: {match['po_item']}\n→ Invoice: {match['matched_invoice_item']}\n→ Score: {match['score']}\n")
+
+        return matches
+
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Database error: {str(e)}")
