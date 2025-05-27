@@ -1,0 +1,102 @@
+id,po_id,invoices,delivery_challan,full_matches,partial_matches,rejections,rejection_reason,tax_discrepancy,currency_mismatch,item_mismatch,date,vendor
+101,PO_00101,5,0,5,0,35,shipto gstin (ship to in po),0,,25.38,2025-04-03,Vendor_5
+2,PO-00002,36,41,19,4,5,,5,INR,7.57,2025-08-07,Vendor_2
+3,PO-00003,87,48,7,12,6,,1,INR,40.73,2024-10-29,Vendor_2
+4,PO-00004,50,21,13,21,7,shipto gstin (ship to in po),4,INR,81.93,2025-04-07,Vendor_1
+5,PO-00005,21,39,17,5,4,invoice date < po date,3,USD,69.18,2025-12-29,Vendor_1
+6,PO-00006,59,49,5,27,2,invoice date < po date,1,USD,13.48,2025-02-26,Vendor_2
+7,PO-00007,4,36,24,17,9,,5,INR,46.86,2025-03-05,Vendor_1
+8,PO-00008,18,15,13,7,9,,5,USD,89.09,2024-01-06,Vendor_1
+9,PO-00009,8,20,4,3,7,invoice date < po date,1,INR,73.18,2024-06-27,Vendor_2
+10,PO-00010,44,11,21,17,3,invoice date < po date,1,USD,31.57,2025-02-12,Vendor_2
+11,PO-00011,58,38,14,10,5,suppliergstin (vendor master),3,INR,53.64,2025-04-26,Vendor_2
+12,PO-00012,1,12,8,13,8,,0,USD,86.32,2024-12-10,Vendor_2
+13,PO-00013,12,46,12,29,7,,1,USD,17.49,2025-04-13,Vendor_1
+14,PO-00014,95,18,12,12,6,invoice date < po date,0,INR,55.67,2025-09-19,Vendor_2
+15,PO-00015,24,22,17,24,7,Invoice No duplicate,3,USD,99.73,2025-10-04,Vendor_3
+16,PO-00016,66,16,13,17,5,,0,USD,30.56,2025-03-15,Vendor_4
+17,PO-00017,86,17,20,2,6,,2,INR,43.77,2024-09-20,Vendor_4
+18,PO-00018,45,30,7,26,10,suppliergstin (vendor master),2,USD,36.44,2025-04-17,Vendor_2
+19,PO-00019,48,41,15,0,0,supplier pan (vendormaster),4,INR,9.85,2025-01-18,Vendor_2
+20,PO-00020,95,15,13,27,6,,3,USD,64.66,2024-03-30,Vendor_3
+21,PO-00021,50,36,30,12,1,supplier pan (vendormaster),1,INR,82.51,2024-05-30,Vendor_2
+22,PO-00022,23,3,24,7,3,,2,USD,3.27,2025-06-18,Vendor_2
+23,PO-00023,38,37,17,25,8,invoice date < po date,2,USD,7.62,2024-07-28,Vendor_2
+24,PO-00024,78,42,17,20,6,,5,INR,11.82,2024-12-05,Vendor_3
+25,PO-00025,5,9,6,16,7,,3,USD,10.92,2024-05-27,Vendor_1
+26,PO-00026,96,28,1,28,9,shipto gstin (ship to in po),4,USD,24.21,2025-02-22,Vendor_3
+27,PO-00027,82,43,29,9,9,invoice date < po date,1,USD,3.54,2024-03-21,Vendor_2
+28,PO-00028,39,37,23,25,3,Invoice No duplicate,0,USD,77.25,2025-07-22,Vendor_4
+29,PO-00029,27,43,0,1,3,invoice date < po date,4,USD,19.94,2024-06-05,Vendor_1
+30,PO-00030,25,15,26,8,5,,2,USD,15.31,2025-12-30,Vendor_3
+31,PO-00031,63,41,9,1,3,suppliergstin (vendor master),3,USD,98.27,2024-10-17,Vendor_2
+32,PO-00032,70,0,4,22,5,suppliergstin (vendor master),2,USD,19.02,2025-04-02,Vendor_2
+33,PO-00033,56,48,25,2,4,,1,USD,85.52,2024-08-01,Vendor_2
+34,PO-00034,86,25,17,16,2,Invoice No duplicate,2,INR,14.57,2024-10-27,Vendor_4
+35,PO-00035,30,44,10,16,3,,5,USD,90.48,2024-11-01,Vendor_2
+36,PO-00036,21,49,6,13,4,suppliergstin (vendor master),2,USD,67.84,2025-10-29,Vendor_4
+37,PO-00037,15,1,30,22,3,invoice date < po date,4,USD,38.43,2024-01-31,Vendor_2
+38,PO-00038,69,34,26,24,2,suppliergstin (vendor master),2,USD,31.11,2024-06-08,Vendor_1
+39,PO-00039,14,3,26,18,8,supplier pan (vendormaster),3,INR,33.95,2025-10-14,Vendor_2
+40,PO-00040,72,23,8,15,2,Invoice No duplicate,2,INR,29.12,2025-02-06,Vendor_3
+41,PO-00041,12,45,5,3,4,suppliergstin (vendor master),2,INR,43.87,2024-02-25,Vendor_1
+42,PO-00042,29,28,29,14,2,invoice date < po date,1,INR,73.43,2024-12-06,Vendor_2
+43,PO-00043,93,33,20,24,2,supplier pan (vendormaster),4,USD,61.20,2024-09-04,Vendor_2
+44,PO-00044,18,35,23,10,9,Invoice No duplicate,1,USD,58.91,2024-08-16,Vendor_1
+45,PO-00045,64,4,0,15,4,,3,USD,61.87,2025-04-01,Vendor_2
+46,PO-00046,96,1,23,21,7,suppliergstin (vendor master),0,USD,3.06,2024-02-23,Vendor_1
+47,PO-00047,31,12,1,18,4,,2,USD,4.56,2024-08-22,Vendor_3
+48,PO-00048,7,35,15,4,7,Invoice No duplicate,4,USD,19.55,2024-10-24,Vendor_1
+49,PO-00049,34,31,22,11,0,suppliergstin (vendor master),0,USD,50.42,2025-07-12,Vendor_1
+50,PO-00050,18,2,0,11,3,,1,USD,66.58,2025-05-27,Vendor_4
+51,PO-00051,58,14,16,4,9,Invoice No duplicate,4,USD,97.18,2025-07-17,Vendor_4
+52,PO-00052,25,46,21,29,10,invoice total value = each line item value in line items,4,USD,92.97,2025-01-06,Vendor_3
+53,PO-00053,67,37,7,24,4,invoice date < po date,0,INR,91.64,2025-02-13,Vendor_3
+54,PO-00054,94,32,5,16,8,,2,INR,11.46,2025-11-24,Vendor_3
+55,PO-00055,23,47,12,9,8,supplier pan (vendormaster),2,INR,16.48,2024-02-25,Vendor_1
+56,PO-00056,24,11,11,13,1,invoice date < po date,4,USD,55.17,2024-10-11,Vendor_3
+57,PO-00057,29,38,27,18,4,invoice date < po date,5,USD,33.78,2024-03-08,Vendor_2
+58,PO-00058,24,8,26,17,9,invoice date < po date,3,USD,21.75,2025-01-08,Vendor_4
+59,PO-00059,38,32,18,24,1,buyergstin (bill_to in po),2,INR,38.00,2024-05-16,Vendor_4
+60,PO-00060,15,45,6,4,8,invoice date < po date,3,USD,85.95,2025-04-23,Vendor_2
+61,PO-00061,49,32,7,28,2,Invoice No duplicate,4,INR,41.59,2025-10-18,Vendor_4
+62,PO-00062,43,24,24,1,9,Invoice No duplicate,4,INR,39.61,2025-12-27,Vendor_2
+63,PO-00063,33,15,14,16,2,,1,USD,64.66,2024-10-16,Vendor_3
+64,PO-00064,32,33,27,14,1,Invoice No duplicate,3,USD,23.02,2024-04-30,Vendor_1
+65,PO-00065,17,30,3,2,2,Invoice No duplicate,2,USD,30.22,2025-12-27,Vendor_3
+66,PO-00066,91,35,25,23,3,,2,USD,60.72,2024-05-31,Vendor_2
+67,PO-00067,50,32,8,14,9,Invoice No duplicate,1,INR,70.94,2024-03-26,Vendor_1
+68,PO-00068,100,22,26,6,0,invoice date < po date,3,USD,73.84,2024-03-07,Vendor_2
+69,PO-00069,4,41,15,19,5,invoice date < po date,5,USD,33.65,2025-06-29,Vendor_2
+70,PO-00070,53,26,14,27,9,invoice date < po date,4,INR,45.10,2024-01-25,Vendor_2
+71,PO-00071,12,2,14,15,6,invoice date < po date,1,USD,47.69,2025-05-13,Vendor_2
+72,PO-00072,39,37,20,14,9,,2,INR,21.78,2024-06-29,Vendor_2
+73,PO-00073,41,23,16,13,9,Invoice Duplicate,4,INR,3.42,2024-01-08,Vendor_2
+74,PO-00074,5,25,23,20,1,suppliergstin (vendor master),5,USD,17.05,2025-08-15,Vendor_3
+75,PO-00075,44,4,1,11,3,supplier pan (vendormaster),0,INR,56.17,2025-03-19,Vendor_3
+76,PO-00076,60,9,12,18,6,,1,USD,69.78,2025-07-18,Vendor_2
+77,PO-00077,64,41,6,20,7,supplier pan (vendormaster),3,INR,40.69,2024-08-03,Vendor_2
+78,PO-00078,97,40,3,22,6,,2,INR,31.18,2025-07-02,Vendor_4
+79,PO-00079,37,6,18,14,7,suppliergstin (vendor master),1,USD,13.35,2025-02-22,Vendor_4
+80,PO-00080,86,47,14,26,4,,4,USD,58.54,2025-10-19,Vendor_3
+81,PO-00081,44,43,5,9,7,suppliergstin (vendor master),2,INR,35.81,2025-08-03,Vendor_2
+82,PO-00082,2,34,26,28,5,invoice date < po date,2,USD,31.10,2024-07-31,Vendor_1
+83,PO-00083,55,32,3,29,7,supplier pan (vendormaster),3,USD,82.71,2025-01-08,Vendor_3
+84,PO-00084,73,21,12,13,6,invoice date < po date,0,INR,87.21,2024-10-04,Vendor_2
+85,PO-00085,23,42,5,6,6,shipto gstin (ship to in po),3,USD,65.18,2025-01-07,Vendor_4
+86,PO-00086,76,20,0,18,4,Invoice Duplicate,3,INR,21.37,2024-12-11,Vendor_3
+87,PO-00087,29,1,7,7,7,supplier pan (vendormaster),3,INR,60.76,2025-09-19,Vendor_1
+88,PO-00088,60,19,12,19,9,,3,INR,47.46,2024-07-24,Vendor_2
+89,PO-00089,62,42,17,29,10,,0,INR,78.24,2025-07-16,Vendor_2
+90,PO-00090,82,20,25,23,3,shipto gstin (ship to in po),0,INR,43.60,2024-02-10,Vendor_2
+91,PO-00091,15,18,24,3,9,suppliergstin (vendor master),4,INR,62.16,2025-03-23,Vendor_2
+92,PO-00092,40,40,16,5,0,Invoice Duplicate,4,USD,45.45,2025-05-14,Vendor_2
+93,PO-00093,50,32,25,14,7,,1,INR,33.32,2024-05-04,Vendor_3
+94,PO-00094,55,9,27,27,6,,0,INR,22.49,2025-11-25,Vendor_2
+95,PO-00095,92,19,12,29,4,,0,INR,31.69,2025-11-02,Vendor_3
+96,PO-00096,72,1,25,14,1,supplier pan (vendormaster),2,USD,39.79,2024-11-14,Vendor_2
+97,PO-00097,42,19,21,8,5,suppliergstin (vendor master),1,INR,67.33,2025-07-14,Vendor_1
+98,PO-00098,85,15,0,6,6,,1,INR,72.09,2025-01-04,Vendor_2
+99,PO-00099,72,17,26,2,7,supplier pan (vendormaster),4,INR,75.38,2025-06-06,Vendor_3
+100,PO-00100,27,40,30,24,3,,0,USD,55.38,2025-04-14,Vendor_4
+1,PO_00001,3,0,3,0,0,,,,0,2024-01-03,Vendor_2
