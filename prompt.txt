@@ -1,0 +1,69 @@
+ messages = [
+   {
+  "role": "system",
+    "content": "You are a general JSON converter for OCR information, organizing the information into a structured JSON output.",
+},
+{
+  "role": "user",
+  "content": f'''
+Extract the following fields from the invoice text and return as a valid JSON object:
+- "invoice_number"
+- "invoice_date"
+- "total_amount"
+- "po_ref" (if not present, leave null)
+- "P.O. No. (if not present, leave null)
+- "company_name"
+- "supplier_name"
+- "supplier_address"
+- "bill_to_company_name"
+- "bill_to_address"
+- "bill_to_state"
+- "bill_to_state_code"
+- "bill_to_pan"
+- "bill_to_cin"
+- "ship_to_company_name"
+- "ship_to_address"
+- "ship_to_state"
+- "ship_to_state_code"
+- "ship_to_gstin"
+- "ship_to_pan"
+- "ship_to_cin"
+- "pan_supplier"
+- "gstin_supplier"
+- "bill_to_gstin"
+- "udyam_regno"
+- "state"
+- "state_code"
+- "invoice_id"
+- "discount"
+- "Qty"
+- "total_taxable_amount"
+- "total_discount_value"
+- "total_quantity"
+- "taxable_value"
+- "tcs_rate"
+- "total_cgst_amount"
+- "total_sgst_amount"
+- "total_tax_amount"
+- "total_invoice_value"
+
+Also extract "line_items" as an array of objects, each containing:
+- "item_name"
+- "hsn"
+- "item_qty"
+- "uom"
+- "rate_incl_of_tax"
+- "unit_price"
+- "total_retail_price"
+- "total_taxable_amount"
+- "discount"
+- "total_value"
+
+Note: "po_ref" may appear in the text as "P.O. No", "PO Number", or "Purchase Order No".
+
+Invoice Text:
+{extract_text}
+'''
+#   "content": f'Extract the following fields: "invoice_number", "invoice_date", "total_amount", po_ref (also appears as "P.O. No", "PO Number", "Purchase Order No"), "company_name","supplier_name", "supplier_address","bill_to_company_name","bill_to_address","bill_to_state","bill_to_state_code","bill_to_pan","bill_to_cin", "ship_to_company_name", "ship_to_address", "ship_to_state", "ship_to_state_code", "ship_to_gstin", "ship_to_pan", "ship_to_cin", "pan_supplier", "gstin_supplier","bill_to_gstin", "udyam_regno", "state", "state_code",  "invoice_id", "discount", "Qty", "total_taxable_amount", "total_discount_value", "total_quantity", "taxable_value", "tcs_rate", "total_cgst_amount", "total_sgst_amount", "total_tax_amount", "total_invoice_value", "line_items.item_name", "line_items.hsn", "line_items.item_qty", "line_items.uom", "line_items.rate_incl_of_tax", "line_items.unit_price", "line_items.total_retail_price", "line_items.total_taxable_amount","line_items.discount", "line_items.total_value", {extract_text}',
+#   "content": f'Extract the following fields and groupd them into the following 1. Invoice Details, 2. Bill_to, 3. Ship_to, 4. Line Items, 5.Inovice Summary, others", {extract_text}',
+},]
