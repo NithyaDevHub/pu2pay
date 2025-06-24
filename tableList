@@ -1,5 +1,12 @@
 po_id,	po_number,	po_date,	total_amount,	vendor_ref,	delivery_terms,	payment_term,	shipment_mode,	warranty_period,	delivery_period,	contact_person,	mobile,	created_at,	updated_at,	item_code,	vendor_name,	supplier_gstin,	buyer_gstin,	delivery_location,	supplier_pan,	po_status
-
+5500246504,  28-Sep-2021, 4,784,850.00,   ,   ,    ,
 
 
 item_id,	po_id,	item_name,	oem_part_code,	quantity,	uom,	unit_price,	discount,	taxable,	gst_rate,	gst_amount,	billable_value,	total_qty,	created_at,	updated_at,	cgst,	sgst,	igst,	gross_amount
+, , Cost - Contract, , 1, each, 474850.00, 0, 0.00, 0, 0, 474850.00,1, , , 0,0,0, 474850.00
+, , Senior Cost Manager, , 14,each, 139000.00, 0, 0, 0, 0, 1946000,14, , , 0,0,0, 1946000
+, , Assistant Cost Manager - MEP Billing,  , 14,each, 70000.00, 0, 0, 0, 0, 980000.00,14, , , 0,0,0, 980000.00
+, , Assistant Cost Manager - Civil Assistant Cost Manager - MEP Billing,  , 14,each, 70000.00, 0, 0, 0, 0, 980000.00,14, , , 0,0,0, 980000.00
+, ,  Senior Cost Manager,  , 3,each, 145950.00, 0, 0, 0, 0, 437850.00,3, , , 0,0,0, 437850.00
+, ,   Assistant Cost Manager - MEP Billing,  , 3,each, 73500.00, 0, 0, 0, 0, 220500.00,3, , , 0,0,0, 220500.00
+, ,   Assistant Cost Manager - Civil Billing,  , 3,each, 73500.00, 0, 0, 0, 0, 220500.00,3, , , 0,0,0, 220500.00
