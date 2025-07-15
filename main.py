@@ -12,11 +12,14 @@ import os
 import torch
 from fastapi.responses import JSONResponse
 from fastapi import FastAPI, HTTPException, Body
-from CRUD.invoice import insert_invoice
+from CRUD.invoice import insert_invoice_data
+from models_v1 import *
 from db import get_db_connection
 from fastapi.middleware.cors import CORSMiddleware
 from pdf2image import convert_from_path
 import uuid
+from rapidfuzz import fuzz,process
+import re
 
 
 app = FastAPI(title="PU2PAY API - Invoice, PO, MRN, RAO")
@@ -33,6 +36,7 @@ app.mount("/images", StaticFiles(directory="/Users/fis/Documents/pu2pay/output_c
 app.mount("/images_duplicate", StaticFiles(directory="/Users/fis/Documents/pu2pay/dublicate_output_images"), name="images_duplicate")
 device = torch.device("mps" if torch.backends.mps.is_available() else "cpu")
 
+print("Using device:", device)
 # Disable tokenizers parallelism warnings
 os.environ["TOKENIZERS_PARALLELISM"] = "false"
 
@@ -42,6 +46,17 @@ class_names_path = '/Users/fis/Documents/claim_summerisation/LayoutLMv2_models/c
 
 class FolderPathRequest(BaseModel):
     root_input: str
+    
+# Request model
+class UpdatePORefRequest(BaseModel):
+    invoice_id: int
+    po_ref: str
+# Request model
+class poListRequest(BaseModel):
+    vendor_name: str
+    
+class UpdateClassification(BaseModel):
+    top_label: str
 
 # def load_model_and_processor(model_path, class_names_path):
 #     try:
@@ -80,11 +95,8 @@ async def process_folder(request: FolderPathRequest):
 
         return {
             "message": "Process completed successfully."
-           
         }
-
-
-    
+        
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"An error occurred during the process: {str(e)}")
 
@@ -137,11 +149,13 @@ def process_pdfs(root_input, root_output, overwrite=True):
                         continue
 
                     image.save(image_path, "PNG")
+                    insert_image_classification(os.path.basename(dirpath), image_filename, image_path,"Invoice")
+
                     reference_images = compare_with_reference_image(image_path, "/Users/fis/Documents/pu2pay/output_convert_images",insert_id,image_filename)
                     print("+++++++++++++++++++++++++++",reference_images)
                     num_images += 1
                      # ✅ If no reference found, move the image
-                    if not reference_images:
+                    if not reference_images == 'Exact Duplicate':
                         convert_output_dir = "/Users/fis/Documents/pu2pay/output_convert_images"
                         os.makedirs(convert_output_dir, exist_ok=True)
                         destination_path = os.path.join(convert_output_dir, os.path.basename(image_path))
@@ -166,12 +180,13 @@ def process_pdfs(root_input, root_output, overwrite=True):
             "Claim_id": os.path.basename(dirpath),  # Using folder name as Claim ID
             "Number of PDFs": num_pdfs,
             "Number of Images": num_images,
-            "Status": status
+            "Status": status,
+            "image_duplicates": reference_images
         })
 
     return results
 
-def process_images(root_input, root_output, overwrite=True):
+def process_images(doctype,root_input, root_output, overwrite=True):
     results = []
     supported_extensions = ('.png', '.jpg', '.jpeg', '.bmp', '.tiff', '.webp')
 
@@ -192,7 +207,8 @@ def process_images(root_input, root_output, overwrite=True):
         insert_id = None
         # reference_images_1 = None
         try:
-            insert_id = insert_pdf_conversion(os.path.basename(dirpath), 0, len(image_files), status)
+            
+            insert_id = insert_pdf_conversion(os.path.basename(dirpath), 1, len(image_files), status)
             print(f"Inserted DB record ID for images: {insert_id}")
         except Exception as e:
             print(f"Database error: {e}")
@@ -209,29 +225,46 @@ def process_images(root_input, root_output, overwrite=True):
                 # Convert and save normalized copy in output_path
                 image = Image.open(image_path)
                 image.save(normalized_path, "PNG")  # Save to output_path
-
+                insert_image_classification(os.path.basename(dirpath), image_filename, image_path,"Invoice")
                 # Compare and decide where to copy the file
                 # reference_images = None
                 reference_images = compare_with_reference_image(
                     normalized_path,
                     "/Users/fis/Documents/pu2pay/output_convert_images",
                     insert_id,
-                    image_filename
+                    image_filename,
+                    doctype
                 )
                 print("+++++++++++++++++++++++++++", reference_images)
                 num_images += 1
                 reference_images_1 = reference_images
-                if not reference_images:
+                # if not reference_images:
+                #     reference_images_1 = 'No_Duplicate'
+                #     convert_output_dir = "/Users/fis/Documents/pu2pay/output_convert_images"
+                # else:
+                #     reference_images_1 = "Duplicate"
+                #     convert_output_dir = "/Users/fis/Documents/pu2pay/dublicate_output_images"
+
+                # os.makedirs(convert_output_dir, exist_ok=True)
+                # destination_path = os.path.join(convert_output_dir, os.path.basename(normalized_path))
+                
+                # # ⬇️ Copy instead of move so that image also stays in output_path
+                # shutil.copy(normalized_path, destination_path)
+                # print(f"Copied image to: {destination_path}")
+                if not reference_images == 'Exact Duplicate':
                     convert_output_dir = "/Users/fis/Documents/pu2pay/output_convert_images"
+                    os.makedirs(convert_output_dir, exist_ok=True)
+                    destination_path = os.path.join(convert_output_dir, os.path.basename(image_path))
+                    
+                    shutil.move(image_path, destination_path)
+                    print(f"Moved unreferenced image to: {destination_path}")
                 else:
                     convert_output_dir = "/Users/fis/Documents/pu2pay/dublicate_output_images"
-
-                os.makedirs(convert_output_dir, exist_ok=True)
-                destination_path = os.path.join(convert_output_dir, os.path.basename(normalized_path))
-                
-                # ⬇️ Copy instead of move so that image also stays in output_path
-                shutil.copy(normalized_path, destination_path)
-                print(f"Copied image to: {destination_path}")
+                    os.makedirs(convert_output_dir, exist_ok=True)
+                    destination_path = os.path.join(convert_output_dir, os.path.basename(image_path))
+                    
+                    shutil.move(image_path, destination_path)
+                    print(f"Moved unreferenced image to: {destination_path}")
 
             except Exception as e:
                 print(f"Error processing image {image_file}: {e}")
@@ -242,11 +275,93 @@ def process_images(root_input, root_output, overwrite=True):
             "Claim_id": os.path.basename(dirpath),
             "Number of PDFs": 0,
             "Number of Images": num_images,
-            "Status": status
+            "Status": status,
+            "image_duplicates": reference_images_1,
+            "insert_id":insert_id
             # "image_duplicates": reference_images_1
         })
 
     return results
+
+
+
+
+
+# def process_images(root_input, root_output, overwrite=True):
+#     results = []
+#     supported_extensions = ('.png', '.jpg', '.jpeg', '.bmp', '.tiff', '.webp')
+
+#     total_images = sum([len([f for f in files if f.lower().endswith(supported_extensions)]) for r, d, files in os.walk(root_input)])
+#     print(f"Total image files: {total_images}")
+    
+#     if total_images == 0:
+#         raise HTTPException(status_code=400, detail="No image files found in the input folder.")
+
+#     for dirpath, dirnames, filenames in os.walk(root_input):
+#         rel_path = os.path.relpath(dirpath, root_input)
+#         output_path = os.path.join(root_output, rel_path)
+#         os.makedirs(output_path, exist_ok=True)
+
+#         image_files = [f for f in filenames if f.lower().endswith(supported_extensions)]
+#         num_images = 0
+#         status = "Processed"
+#         insert_id = None
+#         reference_images_1 = None
+        
+#         try:
+#             insert_id = insert_pdf_conversion(os.path.basename(dirpath), 1, len(image_files), status)
+#             print(f"Inserted DB record ID for images: {insert_id}")
+#         except Exception as e:
+#             print(f"Database error: {e}")
+
+#         for image_file in image_files:
+#             image_path = os.path.join(dirpath, image_file)
+#             image_filename = os.path.splitext(image_file)[0] + ".png"
+#             normalized_path = os.path.abspath(os.path.join(output_path, image_filename))
+
+#             try:
+#                 if not overwrite and os.path.exists(normalized_path):
+#                     continue
+
+#                 image = Image.open(image_path)
+#                 image.save(normalized_path, "PNG")
+
+#                 insert_image_classification(os.path.basename(dirpath), image_filename, image_path, "Invoice")
+
+#                 reference_images = compare_with_reference_image(
+#                     normalized_path,
+#                     "/Users/fis/Documents/pu2pay/output_convert_images",
+#                     insert_id,
+#                     image_filename
+#                 )
+#                 print("+++++++++++++++++++++++++++", reference_images)
+
+#                 num_images += 1
+#                 reference_images_1 = reference_images
+
+#                 if reference_images == 'Exact Duplicate':
+#                     duplicate_output_dir = "/Users/fis/Documents/pu2pay/dublicate_output_images"
+#                     os.makedirs(duplicate_output_dir, exist_ok=True)
+#                     duplicate_destination_path = os.path.join(duplicate_output_dir, os.path.basename(normalized_path))
+                    
+#                     shutil.copy(normalized_path, duplicate_destination_path)
+#                     print(f"Copied duplicate image to: {duplicate_destination_path}")
+
+#             except Exception as e:
+#                 print(f"Error processing image {image_file}: {e}")
+#                 status = "Error"
+#                 break
+
+#         results.append({
+#             "Claim_id": os.path.basename(dirpath),
+#             "Number of PDFs": 0,
+#             "Number of Images": num_images,
+#             "Status": status,
+#             "image_duplicates": reference_images_1,
+#             "insert_id": insert_id
+#         })
+
+#     return results
 
 
 def insert_pdf_conversion(subfolder, num_pdfs, num_images, status):
@@ -325,7 +440,9 @@ def generate_batch_folder_name() -> str:
     return f"BATCH_{date_str}"
 
 @app.post("/upload/")
-async def upload_file(file: UploadFile = File(...)):
+async def upload_file(file: UploadFile = File(...),doctype: str = ""):
+    
+    print(f"in upload doctype ---- {doctype}")
     if not allowed_file(file.filename):
         raise HTTPException(status_code=400, detail="Only PDF and image files are allowed.")
 
@@ -358,7 +475,7 @@ async def upload_file(file: UploadFile = File(...)):
             process_result = process_pdfs(root_input, root_output)
             process_type = "PDF conversion"
         else:
-            process_result = process_images(root_input, root_output)
+            process_result = process_images(doctype,root_input, root_output)
             process_type = "Image processing"
 
         if not process_result:
@@ -372,7 +489,8 @@ async def upload_file(file: UploadFile = File(...)):
             content={
                 "folder": folder_name,
                 "filename": file.filename,
-                "message": f"{process_type} completed successfully."
+                "message": f"{process_type} completed successfully.",
+                "process_result": process_result
             }
         )
 
@@ -427,6 +545,66 @@ async def upload_file(file: UploadFile = File(...)):
 #     except Exception as e:
 #         raise HTTPException(status_code=500, detail=f"An error occurred during the process: {str(e)}")
     
+  
+
+@app.post("/upload_po/")
+async def upload_file(file: UploadFile = File(...),doctype: str = ""):
+    if not allowed_file(file.filename):
+        raise HTTPException(status_code=400, detail="Only PDF and image files are allowed.")
+
+    # Create folder with current timestamp
+    folder_name = generate_batch_folder_name()
+    folder_path = os.path.join(UPLOAD_DIR, folder_name)
+    os.makedirs(folder_path, exist_ok=True)
+
+    # Save file to disk
+    file_location = os.path.join(folder_path, file.filename)
+    with open(file_location, "wb") as f:
+        content = await file.read()
+        f.write(content)
+
+    print("Saved File:", file_location)
+
+    try:
+        root_input = folder_path
+        root_output = os.path.join(os.getcwd(), "output_images")
+        
+        if os.path.exists(root_output):
+            shutil.rmtree(root_output)
+        os.makedirs(root_output, exist_ok=True)
+
+        print("Processing started ------------>")
+        start_time = datetime.now()
+
+        # Decide which method to run
+        if file.filename.lower().endswith(ALLOWED_EXTENSIONS):
+            process_result = process_pdfs(root_input, root_output)
+            process_type = "PDF conversion"
+        else:
+            process_result = process_images_po(root_input, root_output,doctype)
+            process_type = "Image processing"
+
+        if not process_result:
+            raise HTTPException(status_code=400, detail=f"{process_type} failed or no valid files found.")
+
+        end_time = datetime.now()
+        print(f"{process_type} completed in: {end_time - start_time}")
+
+        return JSONResponse(
+            status_code=200,
+            content={
+                "folder": folder_name,
+                "filename": file.filename,
+                "message": f"{process_type} completed successfully.",
+                "process_result": process_result
+            }
+        )
+
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"An error occurred: {str(e)}")
+
+
+
     
     
 # --- Insert Record Endpoint ---
@@ -724,7 +902,7 @@ async def get_pdf_conversion_data():
     conn = get_db_connection()
     cursor = conn.cursor()
     try:
-        query = "SELECT * FROM pdf_conversion_hypotus;"
+        query = "SELECT * FROM pdf_conversion_hypotus ORDER BY id;"
         cursor.execute(query)
         records = cursor.fetchall()
         colnames = [desc[0] for desc in cursor.description]
@@ -912,7 +1090,7 @@ def get_invoice_po_match(invoice_id: int):
         conn = get_db_connection()
         cur = conn.cursor()
 
-        cur.execute("SELECT * FROM get_invoice_po_match_results_v2(%s);", (invoice_id,))
+        cur.execute("SELECT * FROM get_invoice_po_match_results(%s);", (invoice_id,))
         rows = cur.fetchall()
         columns = [desc[0] for desc in cur.description]
 
@@ -1082,14 +1260,120 @@ def image_duplicates(id: str):
 
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Database error: {str(e)}")
-
-@app.post("/insert_invoice")
-def insert_invoice_api(data: InvoiceData):
+    
+@app.get("/po_list_details/{vendor_name}")
+def po_list_details(vendor_name: str):
+    conn = get_db_connection()
+    cursor = conn.cursor()
     try:
-        invoice_id = insert_invoice(data.invoice_details, data.line_items)
-        return {"message": "Inserted successfully", "invoice_id": invoice_id}
+        query = """
+            SELECT * FROM public.po_details 
+            WHERE vendor_name ILIKE %s AND po_status = 'open'
+        """
+        cursor.execute(query, (f"%{vendor_name}%",))
+        records = cursor.fetchall()
+        colnames = [desc[0] for desc in cursor.description]
+        result = [dict(zip(colnames, record)) for record in records]
+        return result
     except Exception as e:
-        raise HTTPException(status_code=500, detail=str(e))
+        raise HTTPException(status_code=500, detail=f"Error retrieving PO details: {str(e)}")
+    finally:
+        cursor.close()
+        conn.close()
+
+# @app.post("/insert_invoice")
+# def insert_invoice_api(data: InvoiceData):
+#     try:
+#         invoice_id = insert_invoice(data.invoice_details, data.line_items)
+#         return {"message": "Inserted successfully", "invoice_id": invoice_id}
+#     except Exception as e:
+#         raise HTTPException(status_code=500, detail=str(e))
+
+
+@app.get("/invoice_po_mrn_number/{id}")
+def invoice_po_mrn_number(id: str):
+    try:
+        conn = get_db_connection()
+        cur = conn.cursor(cursor_factory=psycopg2.extras.RealDictCursor)
+
+        # ✅ Wrap id in a tuple
+        cur.execute("SELECT idet.invoice_number,pdet.po_number, md.mrn_number FROM invoice_details idet LEFT JOIN po_details pdet ON idet.po_ref = pdet.po_number LEFT JOIN mrn_details md ON md.po_reference_number = pdet.po_number WHERE idet.invoice_id = %s LIMIT 1", (id,))
+
+        row = cur.fetchone()
+        cur.close()
+        conn.close()
+
+        if not row:
+            raise HTTPException(status_code=404, detail="Image duplicate not found for the given ID.")
+
+        return row
+
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Database error: {str(e)}")
+
+@app.get("/string_matching")
+def string_matching():
+    try:
+        
+        # Input lists
+        invoice = [
+            'TVS M6x25 Screw',
+            'TVS M6x1 Sunloc Nut',
+            'Fevitite Rapid & Clear 36GMS(140)',
+            'Grease Nipple M12',
+            'PVC Conector',
+            'Taparia Screw Driver 862-150(94)',
+            'Screw Driver Striking(8x210)(DN)140',
+            'TVS M6x35 Screw',
+            'TVS M6x1 Sunloc Nut'
+        ]
+
+        po = [
+             'Grease Nipple Small. 30100125',
+            'Bolt (M6x25) 30170035',
+            'Nut M6. 30170230',
+            'Fevitite (Araldite). 30100084',
+           'Bolt&Nut M6x35. 30170395',
+            'PVC Connectoer 3. 30170254',
+            'Screw Driver 2In1. 40210467',
+            'Screw Driver. 50210154',
+            
+            'Nut M6. 30170230'
+        ]
+
+        # Text cleaning function
+        def clean_text(text):
+            text = text.lower()
+            text = re.sub(r'[^a-z0-9]+', ' ', text)
+            return text.strip()
+
+        # Preprocess
+        cleaned_invoice = [clean_text(item) for item in invoice]
+        cleaned_po = [clean_text(item) for item in po]
+
+        # Matching
+        matches = []
+        for i, po_item in enumerate(cleaned_po):
+            best_match, score, matched_index = process.extractOne(
+                po_item,
+                cleaned_invoice,
+                scorer=fuzz.token_sort_ratio
+            )
+            matches.append({
+                'po_item': po[i],
+                'matched_invoice_item': invoice[matched_index],
+                'score': score
+            })
+
+        # Display results
+        print("\nMatched Results:")
+        for match in matches:
+            print(f"PO: {match['po_item']}\n→ Invoice: {match['matched_invoice_item']}\n→ Score: {match['score']}\n")
+
+        return matches
+
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Database error: {str(e)}")
     
 def update_pdf_status(id_value, new_status):
     conn = get_db_connection()
@@ -1108,3 +1392,183 @@ def update_pdf_status(id_value, new_status):
     finally:
         cursor.close()
         conn.close()
+        
+        
+        
+@app.post("/upload_invoice")
+def upload_invoice(invoice: Invoice):
+    return insert_invoice_data(invoice)
+
+
+@app.get("/invoice-checklist/{invoice_id}/{batch_id}")
+def get_invoice_checklist(invoice_id: int,batch_id:int):
+    try:
+        conn = get_db_connection()
+        # cur = conn.cursor(cursor_factory=psycopg2.extras.RealDictCursor)
+
+        # cur.execute("SELECT * FROM generate_invoice_checklist(%s)", (invoice_id,))
+        # row = cur.fetchone()
+        
+        # cur.close()
+        # conn.close()
+        
+         # Run the checklist function
+        cur_1 = conn.cursor(cursor_factory=psycopg2.extras.RealDictCursor)
+        cur_1.execute("SELECT * FROM generate_invoice_checklist(%s)", (invoice_id,))
+        row = cur_1.fetchone()
+        print("row", row)
+        # Check the overall_status result
+        if row and row["overall_status"] == "no match":
+            status = "Checklist Failed"
+        else:
+            status = "Reconciliation"
+
+        # # Update the status in DB
+        # cur_1.execute("""
+        #     UPDATE pdf_conversion_hypotus
+        #     SET status = %s
+        #     WHERE id = %s
+        # """, (status, invoice_id))
+        # conn.commit()
+        cursor = conn.cursor()
+        try:
+            cursor.execute("""
+                UPDATE public.pdf_conversion_hypotus
+                SET status = %s
+                WHERE id = %s
+            """, (status, batch_id))
+            conn.commit()
+            print(f"Updated status for ID {invoice_id} to '{status}'")
+        except Exception as e:
+            conn.rollback()
+            print(f"Error updating status: {e}")
+
+        print("+++++++++++++++++++++++++",row)
+        if not row:
+            raise HTTPException(status_code=404, detail="No data found for this invoice ID")
+
+        return row
+
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+    
+
+@app.get("/invoice_detials_based_on_id/{batch_id}")
+def get_invoice_checklist(batch_id: str):
+    try:
+        conn = get_db_connection()
+        cur = conn.cursor(cursor_factory=psycopg2.extras.RealDictCursor)
+
+        cur.execute("SELECT * FROM invoice_details where batch_id=%s", (batch_id,))
+        row = cur.fetchone()
+        
+        cur.close()
+        conn.close()
+
+        print("+++++++++++++++++++++++++",row)
+        if not row:
+            raise HTTPException(status_code=404, detail="No data found for this invoice ID")
+
+        return row
+
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+    
+# Function to insert image classification results into the database
+def insert_image_classification(subfolder, image, image_path, top_label='Invoice'):
+    conn = get_db_connection()
+    cursor = conn.cursor()
+    # base64_string = image_to_base64(image_path)
+    base64_string = image_path
+    try:
+        cursor.execute(
+            "INSERT INTO image_classification_hypotus (Claim_id, image, blob_image, top_label,confidence) VALUES (%s, %s, %s, %s, %s)",
+            (subfolder, image, base64_string, top_label,0.50)
+        )
+        conn.commit()
+    except Exception as e:
+        conn.rollback()
+        raise HTTPException(status_code=500, detail=f"Error inserting image classification data: {str(e)}")
+    finally:
+        cursor.close()
+        conn.close()
+        
+@app.put("/update_po_ref")
+def update_po_ref(data: UpdatePORefRequest):
+    try:
+        conn = get_db_connection()
+        cur = conn.cursor()
+
+        # Update query
+        cur.execute(
+            "UPDATE invoice_details SET po_ref = %s, updated_at = CURRENT_TIMESTAMP WHERE invoice_id = %s",
+            (data.po_ref, data.invoice_id)
+        )
+
+        # Check if any row was affected
+        if cur.rowcount == 0:
+            conn.rollback()
+            cur.close()
+            conn.close()
+            raise HTTPException(status_code=404, detail="Invoice ID not found")
+
+        conn.commit()
+        cur.close()
+        conn.close()
+        return {"message": "PO Reference updated successfully"}
+
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Internal server error: {str(e)}")
+
+
+@app.get("/compare_invoice_ewaybill_by_number/{invoice_id}")
+def get_invoice_po_match(invoice_id: str):
+    try:
+        conn = get_db_connection()
+        cur = conn.cursor()
+
+        cur.execute("SELECT * FROM compare_invoice_ewaybill_by_number(%s);", (invoice_id,))
+        rows = cur.fetchall()
+        columns = [desc[0] for desc in cur.description]
+
+        cur.close()
+        conn.close()
+
+        if not rows:
+            raise HTTPException(status_code=404, detail="No data found.")
+
+        results = [dict(zip(columns, row)) for row in rows]
+        return results
+
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+    
+
+@app.put("/classification_details/{image}")
+def update_classification(image: str, request: UpdateClassification):
+    conn = get_db_connection()
+    cursor = conn.cursor()
+
+    # SQL query to update the email column of a specific user
+    try:
+        cursor.execute(
+            """
+            UPDATE image_classification_hypotus SET top_label = %s WHERE image = %s
+            """,
+            (request.top_label, image)
+        )
+        conn.commit()  # Commit the transaction
+        if cursor.rowcount == 0:
+            raise HTTPException(status_code=404, detail="User not found")
+
+    except Exception as e:
+        conn.rollback()  # Rollback in case of error
+        raise HTTPException(status_code=500, detail=str(e))
+
+    finally:
+        cursor.close()
+        conn.close()
+
+    return {"message": "Classification updated successfully"}
+    
+    
