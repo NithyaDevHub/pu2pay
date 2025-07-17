@@ -1,0 +1,357 @@
+<div class="headr-top">
+    <h3>FLow Chart</h3>
+    <div class="add-button">
+        <!-- <button (click)="toggleOrgChart()"> <svg width="16" height="16" viewBox="0 0 16 16" fill="none"
+            xmlns="http://www.w3.org/2000/svg">
+            <path d="M8 1V15M1 8H15" stroke="#fff" stroke-width="2"
+                stroke-linecap="round" stroke-linejoin="round" />
+        </svg> Add Main</button> -->
+    </div>
+</div>
+<div class="orgchart">
+    <ul class="prime-list">
+        <li>
+            <div class="node" >
+                <div class="employee-card">
+                    <div class="department-info">
+                        <h4 class="name">{{entity_info.name}}</h4>
+                    </div>
+                    <div class="info-block">
+                        <h3 class="job-title">Auditor</h3>
+                        <div class="personal-info">
+
+                            <div class="info-wrap">
+                                <h5 class="name">{{entity_info.username }}</h5>
+                                <h6 class="email">{{entity_info.email}}</h6>
+                                <span class="reportee-count" (click)="toggleOrgChart()" *ngIf="role_id == 3 || role_id == 5">
+
+                                    <span class="count"><svg width="16" height="16" viewBox="0 0 16 16" fill="none"
+                                            xmlns="http://www.w3.org/2000/svg">
+                                            <path d="M8 1V15M1 8H15" stroke="black" stroke-width="2"
+                                                stroke-linecap="round" stroke-linejoin="round" />
+                                        </svg>
+                                    </span>
+                                </span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <ul class="sub-list">
+                <li *ngFor="let entity of site_entity_info_children">
+                    <div class="node">
+                        <div class="employee-card">
+                            <div class="department-info">
+                                <h4 class="name">{{entity.name}}</h4>
+                            </div>
+                            <div class="info-block">
+                                <h3 class="job-title">CEO</h3>
+                                <div class="personal-info">
+
+                                    <div class="info-wrap">
+                                        <h5 class="name">{{entity.username}}</h5>
+                                        <h6 class="email">{{entity.email}}</h6>
+                                        <span class="reportee-count" (click)="toggleOrgChart_company(entity.uid)" *ngIf="role_id == 3 || role_id == 4 || role_id == 5">
+
+                                            <span class="count"><svg width="16" height="16" viewBox="0 0 16 16"
+                                                    fill="none" xmlns="http://www.w3.org/2000/svg">
+                                                    <path d="M8 1V15M1 8H15" stroke="black" stroke-width="2"
+                                                        stroke-linecap="round" stroke-linejoin="round" />
+                                                </svg>
+                                            </span>
+                                        </span>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <ul class="sub-list" *ngIf="person_Information">
+                        <li *ngFor="let person of person_Information[entity.uid]">
+                            <div class="node no-child">
+                                <div class="employee-card">
+                                    <div class="department-info">
+                                        <h4 class="name">{{person.name}}</h4>
+                                    </div>
+                                    <div class="info-block">
+                                        <h3 class="job-title">CEO</h3>
+                                        <div class="personal-info">
+
+                                            <div class="info-wrap">
+                                                <h5 class="name">Peter Aramniani</h5>
+                                                <h6 class="email">Sydney Head Office</h6>
+                                                <!-- <span class="reportee-count" (click)="toggleOrgChart()" *ngIf="role_id == 3 || role_id == 4 || role_id == 5">
+
+                                                    <span class="count"><svg width="16" height="16" viewBox="0 0 16 16"
+                                                            fill="none" xmlns="http://www.w3.org/2000/svg">
+                                                            <path d="M8 1V15M1 8H15" stroke="black" stroke-width="2"
+                                                                stroke-linecap="round" stroke-linejoin="round" />
+                                                        </svg>
+                                                    </span>
+                                                </span> -->
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </li>
+                      
+                    </ul>
+                </li>
+                
+                <!-- <li>
+                    <div class="node">
+                        <div class="employee-card">
+                            <div class="department-info">
+                                <h4 class="name">Executive Management</h4>
+                            </div>
+                            <div class="info-block">
+                                <h3 class="job-title">CEO</h3>
+                                <div class="personal-info">
+
+                                    <div class="info-wrap">
+                                        <h5 class="name">Peter Aramniani</h5>
+                                        <h6 class="email">Sydney Head Office</h6>
+                                        <span class="reportee-count" (click)="toggleOrgChart()">
+
+                                            <span class="count"><svg width="16" height="16" viewBox="0 0 16 16"
+                                                    fill="none" xmlns="http://www.w3.org/2000/svg">
+                                                    <path d="M8 1V15M1 8H15" stroke="black" stroke-width="2"
+                                                        stroke-linecap="round" stroke-linejoin="round" />
+                                                </svg>
+                                            </span>
+                                        </span>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <ul>
+                        <li>
+                            <div class="node no-child">
+                                <div class="employee-card">
+                                    <div class="department-info">
+                                        <h4 class="name">Executive Management</h4>
+                                    </div>
+                                    <div class="info-block">
+                                        <h3 class="job-title">CEO</h3>
+                                        <div class="personal-info">
+
+                                            <div class="info-wrap">
+                                                <h5 class="name">Peter Aramniani</h5>
+                                                <h6 class="email">Sydney Head Office</h6>
+                                                <span class="reportee-count" (click)="toggleOrgChart()">
+
+                                                    <span class="count"><svg width="16" height="16" viewBox="0 0 16 16"
+                                                            fill="none" xmlns="http://www.w3.org/2000/svg">
+                                                            <path d="M8 1V15M1 8H15" stroke="black" stroke-width="2"
+                                                                stroke-linecap="round" stroke-linejoin="round" />
+                                                        </svg>
+                                                    </span>
+                                                </span>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </li>
+                        <li>
+                            <div class="node">
+                                <div class="employee-card">
+                                    <div class="department-info">
+                                        <h4 class="name">Executive Management</h4>
+                                    </div>
+                                    <div class="info-block">
+                                        <h3 class="job-title">CEO</h3>
+                                        <div class="personal-info">
+
+                                            <div class="info-wrap">
+                                                <h5 class="name">Peter Aramniani</h5>
+                                                <h6 class="email">Sydney Head Office</h6>
+                                                <span class="reportee-count" (click)="toggleOrgChart()">
+
+                                                    <span class="count"><svg width="16" height="16" viewBox="0 0 16 16"
+                                                            fill="none" xmlns="http://www.w3.org/2000/svg">
+                                                            <path d="M8 1V15M1 8H15" stroke="black" stroke-width="2"
+                                                                stroke-linecap="round" stroke-linejoin="round" />
+                                                        </svg>
+                                                    </span>
+                                                </span>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            <ul>
+                                <li>
+                                    <div class="node no-child">
+                                        <div class="employee-card">
+                                            <div class="department-info">
+                                                <h4 class="name">Executive Management</h4>
+                                            </div>
+                                            <div class="info-block">
+                                                <h3 class="job-title">CEO</h3>
+                                                <div class="personal-info">
+
+                                                    <div class="info-wrap">
+                                                        <h5 class="name">Peter Aramniani</h5>
+                                                        <h6 class="email">Sydney Head Office</h6>
+                                                        <span class="reportee-count" (click)="toggleOrgChart()">
+
+                                                            <span class="count"><svg width="16" height="16"
+                                                                    viewBox="0 0 16 16" fill="none"
+                                                                    xmlns="http://www.w3.org/2000/svg">
+                                                                    <path d="M8 1V15M1 8H15" stroke="black"
+                                                                        stroke-width="2" stroke-linecap="round"
+                                                                        stroke-linejoin="round" />
+                                                                </svg>
+                                                            </span>
+                                                        </span>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </li>
+                                <li>
+                                    <div class="node no-child">
+                                        <div class="employee-card">
+                                            <div class="department-info">
+                                                <h4 class="name">Executive Management</h4>
+                                            </div>
+                                            <div class="info-block">
+                                                <h3 class="job-title">CEO</h3>
+                                                <div class="personal-info">
+
+                                                    <div class="info-wrap">
+                                                        <h5 class="name">Peter Aramniani</h5>
+                                                        <h6 class="email">Sydney Head Office</h6>
+                                                        <span class="reportee-count" (click)="toggleOrgChart()">
+
+                                                            <span class="count"><svg width="16" height="16"
+                                                                    viewBox="0 0 16 16" fill="none"
+                                                                    xmlns="http://www.w3.org/2000/svg">
+                                                                    <path d="M8 1V15M1 8H15" stroke="black"
+                                                                        stroke-width="2" stroke-linecap="round"
+                                                                        stroke-linejoin="round" />
+                                                                </svg>
+                                                            </span>
+                                                        </span>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </li>
+                            </ul>
+                        </li>
+                        <li>
+                            <div class="node no-child">
+                                <div class="employee-card">
+                                    <div class="department-info">
+                                        <h4 class="name">Executive Management</h4>
+                                    </div>
+                                    <div class="info-block">
+                                        <h3 class="job-title">CEO</h3>
+                                        <div class="personal-info">
+
+                                            <div class="info-wrap">
+                                                <h5 class="name">Peter Aramniani</h5>
+                                                <h6 class="email">Sydney Head Office</h6>
+                                                <span class="reportee-count" (click)="toggleOrgChart()">
+
+                                                    <span class="count"><svg width="16" height="16" viewBox="0 0 16 16"
+                                                            fill="none" xmlns="http://www.w3.org/2000/svg">
+                                                            <path d="M8 1V15M1 8H15" stroke="black" stroke-width="2"
+                                                                stroke-linecap="round" stroke-linejoin="round" />
+                                                        </svg>
+                                                    </span>
+                                                </span>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </li>
+                    </ul>
+                </li> -->
+            </ul>
+        </li>
+    </ul>
+</div>
+
+<div class="add-org-chart" *ngIf="showOrgChart">
+    <div class="docked-panel">
+        <div class="panel-header">
+          <div class="panel-title">Create Site</div>
+          <button class="close-button" (click)="toggleOrgChart()">✕</button>
+        </div>
+        <div class="panel-body">
+          <form [formGroup]="entity" (ngSubmit)="onSubmit()">
+            <div class="form-group">
+              <label class="form-label">Site Name</label>
+              <input type="text" class="form-control" formControlName="name">
+            </div>
+            <div class="form-group">
+                <label class="form-label">User Name</label>
+                <input type="text" class="form-control" formControlName="username">
+              </div>
+              <div class="form-group">
+                <label class="form-label">Password</label>
+                <input type="password" class="form-control" formControlName="password">
+              </div>
+              <div class="form-group">
+                <label class="form-label">Email</label>
+                <input type="text" class="form-control" formControlName="email">
+              </div>
+              <div class="form-group">
+                <label class="form-label">Mobile</label>
+                <input type="text" class="form-control" formControlName="mobile">
+              </div>
+            <div class="button-group">
+              <input type="submit" class="btn btn-primary" value="Save">
+             
+            </div>
+          </form>
+        </div>
+      </div>
+</div>
+
+<!-- {{showOrgChart_company}} -->
+
+<div class="add-org-chart" *ngIf="showOrgChart_company">
+    <div class="docked-panel">
+        <div class="panel-header">
+          <div class="panel-title">Create Persons</div>
+          <button class="close-button" (click)="toggleOrgChart_company('')">✕</button>
+        </div>
+        <div class="panel-body">
+          <form [formGroup]="entity" (ngSubmit)="onSubmit_person()">
+            <div class="form-group">
+              <label class="form-label">Person Name</label>
+              <input type="text" class="form-control" formControlName="name">
+            </div>
+            <div class="form-group">
+                <label class="form-label">User Name</label>
+                <input type="text" class="form-control" formControlName="username">
+              </div>
+              <div class="form-group">
+                <label class="form-label">Password</label>
+                <input type="password" class="form-control" formControlName="password">
+              </div>
+              <div class="form-group">
+                <label class="form-label">Email</label>
+                <input type="text" class="form-control" formControlName="email">
+              </div>
+              <div class="form-group">
+                <label class="form-label">Mobile</label>
+                <input type="text" class="form-control" formControlName="mobile">
+              </div>
+            <div class="button-group">
+              <input type="submit" class="btn btn-primary" value="Save">
+             
+            </div>
+          </form>
+        </div>
+      </div>
+</div>
